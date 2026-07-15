@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "title": "Simon's Resume",
+    "version": "1.0.0",
+    "last_updated": "2026-01-15T00:00:00Z",
+    "template": "default"
+  },
+  "contact": {
+    "name": "Simon Developer",
+    "email": "simon@email.com",
+    "phone": "+1 234-567-8900",
+    "linkedin": "https://linkedin.com/in/simondeveloper",
+    "github": "https://github.com/simondeveloper",
+    "portfolio": "https://simon.dev",
+    "location": "San Francisco, CA"
+  },
+  "summary": "Senior Software Engineer with 8+ years of experience in backend development, distributed systems, and cloud architecture. Expert in Go, Python, and cloud technologies.",
+  "experience": [
+    {
+      "id": "exp-1",
+      "company": "TechCorp",
+      "position": "Senior Backend Engineer",
+      "start_date": "2018-01-15T00:00:00Z",
+      "end_date": null,
+      "current": true,
+      "description": "Lead backend development for distributed systems. Designed and implemented scalable microservices using Go and Kubernetes. Built RESTful APIs and managed cloud infrastructure on AWS.",
+      "achievements": [
+        "Reduced API response time by 60% through caching optimization",
+        "Migrated legacy monolith to microservices architecture",
+        "Implemented CI/CD pipelines reducing deployment time by 80%"
+      ],
+      "skills": ["Go", "Kubernetes", "Docker", "AWS", "REST API", "Microservices"],
+      "location": "San Francisco, CA"
+    },
+    {
+      "id": "exp-2",
+      "company": "DataSystems Inc",
+      "position": "Backend Developer",
+      "start_date": "2015-06-01T00:00:00Z",
+      "end_date": "2017-12-31T00:00:00Z",
+      "current": false,
+      "description": "Developed backend services for data processing and analytics. Worked with Python, PostgreSQL, and Redis. Implemented real-time data pipelines and optimized database queries.",
+      "achievements": [
+        "Improved data processing throughput by 300%",
+        "Designed and implemented caching layer reducing database load"
+      ],
+      "skills": ["Python", "PostgreSQL", "Redis", "Data Pipeline", "ETL"],
+      "location": "New York, NY"
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "institution": "Stanford University",
+      "degree": "Master of Science",
+      "field_of_study": "Computer Science",
+      "start_date": "2012-09-01T00:00:00Z",
+      "end_date": "2014-05-15T00:00:00Z",
+      "gpa": 3.8,
+      "courses": ["Distributed Systems", "Advanced Algorithms", "Machine Learning"],
+      "location": "Stanford, CA"
+    },
+    {
+      "id": "edu-2",
+      "institution": "University of California",
+      "degree": "Bachelor of Science",
+      "field_of_study": "Computer Science",
+      "start_date": "2008-09-01T00:00:00Z",
+      "end_date": "2012-05-15T00:00:00Z",
+      "gpa": 3.7,
+      "location": "Berkeley, CA"
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "name": "Go",
+      "category": "Programming Languages",
+      "proficiency": "Expert",
+      "keywords": ["Golang", "Backend", "Concurrency"],
+      "years": 6
+    },
+    {
+      "id": "skill-2",
+      "name": "Python",
+      "category": "Programming Languages",
+      "proficiency": "Advanced",
+      "keywords": ["Data Analysis", "Scripting", "Web Development"],
+      "years": 8
+    },
+    {
+      "id": "skill-3",
+      "name": "Kubernetes",
+      "category": "DevOps",
+      "proficiency": "Advanced",
+      "keywords": ["K8s", "Container Orchestration", "Docker"],
+      "years": 5
+    },
+    {
+      "id": "skill-4",
+      "name": "AWS",
+      "category": "Cloud",
+      "proficiency": "Advanced",
+      "keywords": ["EC2", "S3", "Lambda", "RDS"],
+      "years": 5
+    },
+    {
+      "id": "skill-5",
+      "name": "PostgreSQL",
+      "category": "Databases",
+      "proficiency": "Advanced",
+      "keywords": ["SQL", "Database Design", "Optimization"],
+      "years": 6
+    },
+    {
+      "id": "skill-6",
+      "name": "Docker",
+      "category": "DevOps",
+      "proficiency": "Advanced",
+      "keywords": ["Containerization", "Docker Compose"],
+      "years": 6
+    },
+    {
+      "id": "skill-7",
+      "name": "REST API",
+      "category": "Web Development",
+      "proficiency": "Expert",
+      "keywords": ["API Design", "JSON", "Microservices"],
+      "years": 8
+    },
+    {
+      "id": "skill-8",
+      "name": "Agile Methodologies",
+      "category": "Process",
+      "proficiency": "Advanced",
+      "years": 8
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "Distributed Cache System",
+      "description": "High-performance distributed caching system built with Go and Redis. Achieves sub-millisecond response times with 99.99% uptime.",
+      "start_date": "2020-03-01T00:00:00Z",
+      "end_date": null,
+      "url": "https://github.com/simondeveloper/distributed-cache",
+      "technologies": ["Go", "Redis", "Docker", "Kubernetes"],
+      "role": "Lead Developer"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "cert-1",
+      "name": "AWS Certified Solutions Architect",
+      "issuer": "Amazon Web Services",
+      "issue_date": "2020-06-15T00:00:00Z",
+      "expiry_date": "2023-06-15T00:00:00Z",
+      "credential_id": "AWS-12345678",
+      "url": "https://aws.amazon.com/certification/verified/"
+    },
+    {
+      "id": "cert-2",
+      "name": "Certified Kubernetes Administrator",
+      "issuer": "Cloud Native Computing Foundation",
+      "issue_date": "2021-03-10T00:00:00Z",
+      "credential_id": "CKA-87654321"
+    }
+  ],
+  "languages": [
+    {
+      "id": "lang-1",
+      "language": "English",
+      "proficiency": "Native"
+    },
+    {
+      "id": "lang-2",
+      "language": "Spanish",
+      "proficiency": "Fluent"
+    }
+  ]
+}

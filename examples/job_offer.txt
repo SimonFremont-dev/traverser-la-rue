@@ -1,0 +1,37 @@
+Position: Senior Backend Engineer
+Company: CloudTech Solutions
+Location: Remote
+
+Job Description:
+We are looking for a Senior Backend Engineer to join our growing team. You will be responsible for designing, developing, and maintaining our cloud-based microservices architecture.
+
+Requirements:
+- 5+ years of experience in backend development
+- Expert knowledge of Go (Golang)
+- Experience with distributed systems and microservices
+- Proficiency with Kubernetes and Docker
+- Strong understanding of cloud platforms (AWS, GCP, or Azure)
+- Experience with RESTful API design and development
+- Knowledge of database systems (PostgreSQL, MySQL)
+- Familiarity with Agile methodologies
+
+Preferred Skills:
+- Experience with GraphQL
+- Knowledge of message queues (RabbitMQ, Kafka)
+- Familiarity with monitoring and observability tools
+- CI/CD pipeline experience
+
+Education:
+- Bachelor's degree in Computer Science or related field
+- Master's degree preferred
+
+Benefits:
+- Competitive salary ($120,000 - $150,000/year)
+- Full benefits package
+- Remote work flexibility
+- Professional development opportunities
+
+About CloudTech Solutions:
+We are a rapidly growing technology company focused on cloud-native solutions. Our mission is to help businesses transition to modern, scalable cloud architectures.
+
+We are an equal opportunity employer and value diversity at our company.

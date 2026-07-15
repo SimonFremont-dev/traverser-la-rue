@@ -1,0 +1,96 @@
+run:
+  # Default timeout for all linters
+  timeout: 5m
+  # Default issues exclude patterns
+  issues-exclude:
+    - "G104" # Errors unhandled.
+  # Run only new linters
+  go: "1.21"
+
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - golint
+    - staticcheck
+    - unused
+    - gosec
+    - errcheck
+    - misspell
+    - unconvert
+    - gocritic
+    - godot
+    - stylecheck
+    - dupl
+    - funlen
+    - gocognit
+    - lll
+    - nakedret
+    - prealloc
+    - rowserrcheck
+    - sqlclosecheck
+    - wrapcheck
+    - wsl
+
+linters-settings:
+  golint:
+    min-confidence: 0.8
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  gosec:
+    # When using G101 (potential hardcoded credentials)
+    # G101: Look for hardcoded credentials
+    # G104: Errors unhandled
+    # G201: SQL query string concatenation
+    # G202: SQL query string format error
+    # G301: Reflect based DoS
+    # G302: Greedy regex
+    # G401: Use of weak cryptographic primitive
+    # G402: TLS InsecureSkipVerify set true
+    # G404: Insecure random number source (rand)
+    excludes:
+      - G104
+  funlen:
+    lines: 100
+    statements: 50
+  gocognit:
+    min-complexity: 10
+  lll:
+    line-length: 120
+    tab-width: 4
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - wrapperFunc
+  misspell:
+    locale: US
+  goimports:
+    local-prefixes: github.com/SimonFremont-dev/cv-builder
+
+# Issues configuration
+issues:
+  # Maximum issues count to report per linter
+  max-issues-per-linter: 0
+  # Maximum total issues count to report
+  max-total-issues: 50
+  # Exclude issues by linter
+  exclude:
+    - "G104"
+  # Exclude files
+  exclude-files:
+    - "_test\\.go$"
+    - "testdata/.*"
+  # Exclude patterns
+  exclude-patterns:
+    - "\.git/.*"
+  # Exclude line numbers
+  exclude-line-numbers: []
+
+# Severity configuration
+severity:
+  default-severity: error
+  case-sensitive: false
