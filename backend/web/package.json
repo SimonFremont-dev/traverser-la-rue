@@ -1,0 +1,13 @@
+{
+  "name": "cv-builder-frontend",
+  "version": "1.0.0",
+  "description": "CV Builder Frontend UI",
+  "main": "static/app.js",
+  "scripts": {
+    "build": "tsc static/app.ts --outDir static --target es2015 --module es2015 --moduleResolution node --esModuleInterop",
+    "watch": "tsc static/app.ts --outDir static --target es2015 --module es2015 --moduleResolution node --esModuleInterop --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

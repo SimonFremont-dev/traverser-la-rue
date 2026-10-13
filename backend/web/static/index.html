@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Builder - Job Offer Processor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CV Builder</h1>
+            <p class="subtitle">Job Offer Processor & Resume Generator</p>
+        </header>
+
+        <!-- Profile Creation Modal -->
+        <div id="create-profile-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Create New Profile</h2>
+                <div class="input-group">
+                    <label for="new-profile-name">Your Name:</label>
+                    <input type="text" id="new-profile-name" placeholder="John Doe">
+                </div>
+                <div class="input-group">
+                    <label for="new-profile-email">Email:</label>
+                    <input type="email" id="new-profile-email" placeholder="john@example.com">
+                </div>
+                <div class="btn-group">
+                    <button onclick="createProfile()" class="btn btn-success">Create Profile</button>
+                    <button onclick="closeModal('create-profile-modal')" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <!-- Create Profile Button - Available at any step -->
+            <div class="profile-header">
+                <button onclick="openModal('create-profile-modal')" class="btn btn-primary" id="create-profile-btn">
+                    Create New Profile
+                </button>
+            </div>
+
+            <!-- Step 1: Load Job Offer -->
+            <section class="card" id="load-section">
+                <h2>Step 1: Load Job Offer</h2>
+                <p>Provide a job offer from a URL or upload a text file</p>
+                
+                <div class="input-group">
+                    <label for="offer-url">Job Offer URL:</label>
+                    <input type="url" id="offer-url" placeholder="https://example.com/job-offer">
+                    <button onclick="loadFromURL()" class="btn btn-primary">Load from URL</button>
+                    <p class="hint">Note: LinkedIn and some job sites may block URL fetching. In that case, please copy and paste the job description text directly.</p>
+                </div>
+                
+                <div class="divider">OR</div>
+                
+                <div class="input-group">
+                    <label for="offer-file">Upload Text File:</label>
+                    <input type="file" id="offer-file" accept=".txt,.text,.md,.markdown">
+                    <button onclick="loadFromFile()" class="btn btn-primary">Upload File</button>
+                </div>
+                
+                <div class="input-group">
+                    <label for="offer-text">Or paste job offer text:</label>
+                    <textarea id="offer-text" placeholder="Paste the job offer description here..." rows="10"></textarea>
+                </div>
+                
+                <button onclick="processText()" class="btn btn-success" id="process-btn">Process Job Offer</button>
+            </section>
+
+            <!-- Step 2: Extracted Keywords -->
+            <section class="card hidden" id="keywords-section">
+                <h2>Step 2: Extracted Keywords</h2>
+                <p>These are the technical keywords extracted from the job offer:</p>
+                <div id="keywords-list" class="tag-container"></div>
+                <button onclick="nextToSkills()" class="btn btn-success">Continue to Skill Matching</button>
+            </section>
+
+            <!-- Step 3: Skill Matching -->
+            <section class="card hidden" id="skills-section">
+                <h2>Step 3: Match Skills from Database</h2>
+                <p>Here are the skills from our database that match the keywords:</p>
+                
+                <div class="select-profile">
+                    <label for="profile-select">Select Profile:</label>
+                    <select id="profile-select" onchange="loadProfileSkills()">
+                        <option value="">Loading profiles...</option>
+                    </select>
+                </div>
+                
+                <div id="matched-skills" class="skills-grid"></div>
+                
+                <div id="unmatched-keywords" class="skills-grid hidden"></div>
+                
+                <button onclick="generateResume()" class="btn btn-success" id="generate-btn">Generate Resume</button>
+            </section>
+
+            <!-- Step 4: Resume Preview -->
+            <section class="card hidden" id="resume-section">
+                <h2>Step 4: Generated Resume</h2>
+                <div class="resume-preview">
+                    <pre id="resume-content"></pre>
+                </div>
+                <div class="btn-group">
+                    <button onclick="downloadResume()" class="btn btn-primary">Download Resume</button>
+                    <button onclick="copyToClipboard()" class="btn btn-secondary">Copy to Clipboard</button>
+                    <button onclick="startOver()" class="btn btn-danger">Start Over</button>
+                </div>
+            </section>
+
+            <!-- Loading Spinner -->
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="loading-spinner"></div>
+                <p id="loading-message">Processing...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="error-message hidden"></div>
+        </main>
+
+        <footer>
+            <p>CV Builder &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Binary
+backend
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Data
+data/
+output/
+
+# Logs
+*.log
+
+# Local config
+config.json
+.env

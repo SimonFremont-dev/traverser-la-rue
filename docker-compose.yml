@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cv-builder-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - SQLITE_PATH=/app/data/personal.db
+      - SQL_DSN=postgres://cv_user:cv_password@sql-db:5432/cv_db?sslmode=disable
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/output:/app/output
+    depends_on:
+      - sql-db
+    networks:
+      - cv-network
+
+  sql-db:
+    image: postgres:15-alpine
+    container_name: cv-builder-sql-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=cv_db
+      - POSTGRES_USER=cv_user
+      - POSTGRES_PASSWORD=cv_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - cv-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cv_user -d cv_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  cv-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

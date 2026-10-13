@@ -1,0 +1,108 @@
+{
+  "metadata": {
+    "format": "json",
+    "title": "Senior Backend Engineer"
+  },
+  "company": {
+    "name": "CloudTech Solutions",
+    "location": "Remote",
+    "industry": "Technology",
+    "description": "A leading cloud technology company"
+  },
+  "position": {
+    "title": "Senior Backend Engineer",
+    "type": "Full-time",
+    "level": "Senior",
+    "location": "Remote",
+    "remote": true
+  },
+  "description": "We are looking for a Senior Backend Engineer to join our growing team. You will be responsible for designing, developing, and maintaining our cloud-based microservices architecture.",
+  "requirements": {
+    "required_skills": [
+      {
+        "name": "Go",
+        "category": "Programming Languages",
+        "years": 5,
+        "proficiency": "Expert",
+        "required": true
+      },
+      {
+        "name": "Distributed Systems",
+        "category": "Architecture",
+        "years": 3,
+        "required": true
+      },
+      {
+        "name": "Microservices",
+        "category": "Architecture",
+        "required": true
+      },
+      {
+        "name": "Kubernetes",
+        "category": "DevOps",
+        "years": 2,
+        "required": true
+      },
+      {
+        "name": "Docker",
+        "category": "DevOps",
+        "required": true
+      },
+      {
+        "name": "Cloud Platforms",
+        "category": "Cloud",
+        "required": true
+      },
+      {
+        "name": "RESTful API",
+        "category": "Web Development",
+        "required": true
+      },
+      {
+        "name": "PostgreSQL",
+        "category": "Databases",
+        "required": true
+      }
+    ],
+    "preferred_skills": [
+      {
+        "name": "GraphQL",
+        "category": "Web Development",
+        "required": false
+      },
+      {
+        "name": "Message Queues",
+        "category": "Infrastructure",
+        "required": false
+      },
+      {
+        "name": "Agile Methodologies",
+        "category": "Process",
+        "required": false
+      }
+    ],
+    "experience": {
+      "total_years": 5,
+      "in_field": 3,
+      "management": false
+    },
+    "education": [
+      {
+        "degree": "Bachelor",
+        "field_of_study": "Computer Science",
+        "required": true
+      }
+    ],
+    "certifications": [],
+    "languages": [],
+    "soft_skills": [],
+    "keywords": ["Cloud", "Microservices", "Backend", "Distributed Systems"]
+  },
+  "benefits": [
+    "Competitive salary",
+    "Full benefits package",
+    "Remote work flexibility",
+    "Professional development opportunities"
+  ],
+  "source": "input/job-offers/cloudtech_backend.json"
+}

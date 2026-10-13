@@ -1,0 +1,12 @@
+{
+  "resume": {
+    "path": "input/resume"
+  },
+  "job_offer": {
+    "path": "input/job-offers"
+  },
+  "output": {
+    "directory": "output",
+    "use_company_and_role": true
+  }
+}

@@ -53,6 +53,11 @@ Examples:
 	rootCmd.AddCommand(newConvertCommand())
 	rootCmd.AddCommand(newGenerateCommand())
 	rootCmd.AddCommand(newGenerateAllCommand())
+	rootCmd.AddCommand(newAdaptConfigCommand())
+	
+	// Register database commands
+	RegisterDBCommands(rootCmd)
+	
 	rootCmd.AddCommand(newVersionCommand())
 
 	// Configure persistent flags
@@ -285,6 +290,42 @@ Examples:
 	cmd.Flags().BoolP("adapt", "a", false, "adapt resume to match job offer")
 	cmd.MarkFlagRequired("input")
 	cmd.MarkFlagRequired("output")
+
+	return cmd
+}
+
+// newAdaptConfigCommand creates the adapt-config subcommand
+func newAdaptConfigCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "adapt-config",
+		Short: "Adapt resume to job offer using config file",
+		Long: `Generate adapted resumes using configuration file.
+
+This command reads the configuration from a config file (default: config/config.json)
+which specifies the resume path, job offer path, and output configuration.
+
+The output will be generated in output/<company>/<role> structure if
+use_company_and_role is set to true in the config.
+
+Examples:
+  # Generate adapted resume using config file
+  resume-adapter adapt-config
+
+  # Generate adapted resume with specific config file
+  resume-adapter adapt-config --config custom-config.json`,
+		Run: func(cmd *cobra.Command, args []string) {
+			verbose, _ := cmd.Flags().GetBool("verbose")
+			configPath, _ := cmd.Flags().GetString("config")
+			outputFormat, _ := cmd.Flags().GetString("format")
+
+			if err := runAdaptConfig(verbose, configPath, outputFormat); err != nil {
+				log.Fatal(err)
+			}
+		},
+	}
+
+	cmd.Flags().StringP("config", "c", "config/config.json", "path to config file")
+	cmd.Flags().StringP("format", "f", "pdf", "output format: json, yaml, markdown, html, text, pdf, docx")
 
 	return cmd
 }
@@ -859,4 +900,111 @@ func sanitizeFilename(name string) string {
 	name = strings.ReplaceAll(name, ">", "_")
 	name = strings.ReplaceAll(name, "|", "_")
 	return strings.ToLower(name)
+}
+
+// runAdaptConfig executes the adapt-config command
+func runAdaptConfig(verbose bool, configPath, outputFormat string) error {
+	// Load configuration
+	config, err := parser.LoadConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	if verbose {
+		fmt.Printf("Using config: %s\n", configPath)
+		fmt.Printf("Resume path: %s\n", config.Resume.Path)
+		fmt.Printf("Job offer path: %s\n", config.JobOffer.Path)
+	}
+
+	// Get resume path
+	configParser := parser.NewConfigParser(configPath)
+	resumePath, err := configParser.GetResumePath(config)
+	if err != nil {
+		return fmt.Errorf("failed to get resume path: %w", err)
+	}
+
+	// Get job offer path
+	jobOfferPath, err := configParser.GetJobOfferPath(config)
+	if err != nil {
+		return fmt.Errorf("failed to get job offer path: %w", err)
+	}
+
+	if verbose {
+		fmt.Printf("Loading resume from: %s\n", resumePath)
+		fmt.Printf("Loading job offer from: %s\n", jobOfferPath)
+	}
+
+	// Load resume
+	resumeParser := parser.NewResumeParser()
+	resume, err := resumeParser.ParseResume(resumePath)
+	if err != nil {
+		return fmt.Errorf("failed to parse resume: %w", err)
+	}
+
+	// Load job offer
+	jobParser := parser.NewJobParser()
+	jobOffer, err := jobParser.ParseJobOffer(jobOfferPath)
+	if err != nil {
+		return fmt.Errorf("failed to parse job offer: %w", err)
+	}
+
+	// Create matcher and perform matching with adaptation
+	matcher := matcher.NewMatcher()
+	result := matcher.MatchWithAdaptation(resume, jobOffer)
+
+	if result.AdaptedResume == nil {
+		return fmt.Errorf("failed to create adapted resume")
+	}
+
+	// Determine output path
+	companyName := jobOffer.Company.Name
+	if companyName == "" {
+		companyName = "unknown-company"
+	}
+	roleTitle := jobOffer.Position.Title
+	if roleTitle == "" {
+		roleTitle = "unknown-role"
+	}
+
+	// Sanitize company and role names for directory creation
+	companyDir := sanitizeFilename(companyName)
+	roleDir := sanitizeFilename(roleTitle)
+
+	outputPath := parser.GetOutputPath(config, companyDir, roleDir)
+
+	// Ensure output directory exists
+	if err := os.MkdirAll(outputPath, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Generate output filename
+	outputFile := filepath.Join(outputPath, fmt.Sprintf("%s_%s", companyDir, roleDir))
+
+	if verbose {
+		fmt.Printf("Generating output to: %s\n", outputFile)
+	}
+
+	// Generate output
+	gen := generator.NewGenerator()
+	if err := gen.GenerateResume(result.AdaptedResume, outputFormat, outputFile); err != nil {
+		return fmt.Errorf("failed to generate adapted resume: %w", err)
+	}
+
+	// Print match summary
+	fmt.Printf("Adapted resume created: %s\n", outputFile)
+	fmt.Printf("Match score: %.1f%% (Grade: %s)\n", result.OverallScore, result.MatchGrade)
+
+	if verbose {
+		fmt.Printf("\nMissing requirements:\n")
+		for _, req := range result.MissingRequirements {
+			fmt.Printf("  - %s\n", req)
+		}
+
+		fmt.Printf("\nSuggestions:\n")
+		for _, sug := range result.SuggestedChanges {
+			fmt.Printf("  [%s] %s: %s\n", sug.Priority, sug.Type, sug.Reason)
+		}
+	}
+
+	return nil
 }

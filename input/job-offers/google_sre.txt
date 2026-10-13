@@ -1,0 +1,35 @@
+Position: Site Reliability Engineer
+Company: Google
+Location: Mountain View, CA
+
+Job Description:
+Google is looking for a Site Reliability Engineer to ensure our services are reliable, scalable, and efficient. You will work on automating operations, improving system performance, and building infrastructure.
+
+Requirements:
+- 5+ years of experience in site reliability or DevOps
+- Expert knowledge of Go or Python
+- Experience with large-scale distributed systems
+- Proficiency with Kubernetes, Docker, and container orchestration
+- Strong understanding of cloud platforms (GCP preferred)
+- Experience with monitoring and observability tools (Prometheus, Grafana)
+- Knowledge of networking and load balancing
+- Familiarity with CI/CD pipelines
+
+Preferred Skills:
+- Experience with Terraform or other infrastructure as code tools
+- Knowledge of service mesh technologies (Istio, Linkerd)
+- Familiarity with databases (PostgreSQL, Spanner)
+- Understanding of security best practices
+
+Education:
+- Bachelor's degree in Computer Science or related field
+- Master's degree preferred
+
+Benefits:
+- Competitive salary ($150,000 - $200,000/year)
+- Stock options
+- Comprehensive benefits package
+- On-site amenities
+
+About Google:
+Google's mission is to organize the world's information and make it universally accessible and useful.
