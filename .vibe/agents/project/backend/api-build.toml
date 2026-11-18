@@ -1,0 +1,336 @@
+agent_type = "subagent"
+display_name = "Backend API Build"
+description = "Builds, tests, and packages the Go API backend with PostgreSQL and Redis integration"
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+
+instructions = """
+BACKEND API BUILD PIPELINE:
+
+CONTEXT:
+This agent manages the build process for the Go API backend of cv-builder.
+The backend is API-only (no CLI) and serves the React frontend via HTTP REST API.
+
+BACKEND ARCHITECTURE:
+- Framework: Standard net/http (or specified framework like gin, echo, chi)
+- Database: PostgreSQL (primary) + SQLite (optional for local development)
+- Caching: Redis (for job offers, match results, sessions)
+- API: RESTful HTTP endpoints at /api/v1/*
+- Port: 8080 (default, configurable via PORT env var)
+
+BUILD ENVIRONMENTS:
+- Local Development: Build with debug symbols, race detector
+- Production: Optimized build, minimal binary
+- Docker: Multi-stage build for containerized deployment
+
+BUILD STEPS:
+
+===== 1. PRE-BUILD VALIDATION =====
+
+✅ Go Version Check:
+   Command: `go version`
+   - Required: Go 1.21 or higher
+   - If version < 1.21: BLOCK and report
+
+✅ Dependency Check:
+   Command: `go mod tidy` (dry run first)
+   - Verify: go.mod and go.sum are in sync
+   - Check: No missing dependencies
+   - If issues: Report and suggest `go mod tidy`
+
+✅ Module Verification:
+   Command: `go mod verify`
+   - Verify: All module dependencies are valid
+   - If failures: BLOCK and report
+
+✅ Code Formatting:
+   Command: `gofmt -l .`
+   - If files need formatting: WARNING
+   - Suggestion: Run `gofmt -w .`
+
+===== 2. STANDARD BUILD =====
+
+✅ Debug Build (with race detector):
+   Command: `go build -race -o ./bin/cv-builder-api ./backend`
+   - Output: ./bin/cv-builder-api
+   - Flags: -race (for concurrency bug detection)
+   - GC Flags: GOGC=100 (aggressive GC for development)
+   - Tags: Can add build tags if needed
+   - Verify: Binary exists and is executable
+   - Size: Report binary size
+
+✅ Production Build (optimized):
+   Command: `go build -ldflags="-s -w" -o ./bin/cv-builder-api-prod ./backend`
+   - Flags: -ldflags="-s -w" (strip symbols, disable DWARF)
+   - Output: ./bin/cv-builder-api-prod
+   - GC Flags: GOGC=40 (balanced GC for production)
+   - Verify: Binary exists and is executable
+   - Size: Report binary size
+
+✅ Linux Build (for Docker):
+   Command: `GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ./bin/cv-builder-api-linux ./backend`
+   - OS: linux
+   - Architecture: amd64
+   - Output: ./bin/cv-builder-api-linux
+   - Use: For Docker container
+
+✅ Windows Build (optional):
+   Command: `GOOS=windows GOARCH=amd64 go build -o ./bin/cv-builder-api.exe ./backend`
+   - OS: windows
+   - Architecture: amd64
+   - Output: ./bin/cv-builder-api.exe
+
+===== 3. BUILD VALIDATION =====
+
+✅ Binary Exists:
+   - Check: ./bin/cv-builder-api* files exist
+   - Check: Files are executable (chmod +x)
+   - If missing: BLOCK
+
+✅ Binary Size:
+   - Report: Size of each binary
+   - Warning: If size > 100MB (unlikely for Go)
+
+✅ Version Info:
+   - Check: Version is embedded in binary
+   - Command: `./bin/cv-builder-api --version` (if implemented)
+   - Verify: Version string is correct
+
+✅ Help/Usage:
+   - Command: `./bin/cv-builder-api --help` (if implemented)
+   - Verify: Help text is displayed correctly
+
+===== 4. DOCKER BUILD =====
+
+✅ Build Docker Image:
+   Command: `docker build -t cv-builder-api -f backend/Dockerfile .`
+   - Tag: cv-builder-api
+   - Dockerfile: backend/Dockerfile
+   - Build context: Project root
+   - Verify: Image built successfully
+
+✅ Dockerfile Requirements:
+   - Multi-stage build (builder + runtime)
+   - Alpine-based or distroless image
+   - Non-root user (USER apiuser)
+   - Minimal size
+   - Health check configured
+   - Exposed port: 8080
+
+✅ Image Inspection:
+   Command: `docker inspect cv-builder-api`
+   - Verify: Image size
+   - Verify: Exposed ports (8080)
+   - Verify: Entrypoint/command
+   - Verify: Environment variables
+   - Verify: Non-root user
+
+✅ Image Security Scan (optional):
+   Command: `docker scan cv-builder-api`
+   - If vulnerabilities found: WARNING
+   - Report: Severity levels (Critical, High, Medium, Low)
+
+✅ Tag and Push (optional):
+   Command: `docker tag cv-builder-api:latest <registry>/cv-builder-api:<version>`
+   Command: `docker push <registry>/cv-builder-api:<version>`
+   - Only if explicitly requested
+   - Requires: Docker registry authentication
+   - Tags: latest, version, commit hash
+
+===== 5. RUN API SERVER =====
+
+✅ Start API Server:
+   Command: `PORT=8080 ./bin/cv-builder-api`
+   - Port: 8080 (configurable via PORT env var)
+   - Environment variables:
+     - PORT: HTTP server port (default: 8080)
+     - DATABASE_URL: PostgreSQL connection string
+     - REDIS_URL: Redis connection string
+     - ENVIRONMENT: development/staging/production
+     - LOG_LEVEL: debug/info/warn/error
+   - Run in background for testing
+
+✅ Health Check:
+   Command: `curl -f http://localhost:8080/api/v1/health`
+   - Endpoint: GET /api/v1/health
+   - Expected: HTTP 200
+   - Response: {"status": "ok", "timestamp": "..."}
+   - Timeout: 5 seconds
+   - If fails: BLOCK
+
+✅ Readiness Check:
+   Command: `curl -f http://localhost:8080/api/v1/ready`
+   - Endpoint: GET /api/v1/ready
+   - Expected: HTTP 200
+   - Checks: Database connection, Redis connection
+   - If fails: WARNING (database/redis not available)
+
+✅ API Endpoints Test:
+   - Test: GET /api/v1/resumes (should return 200 or 401)
+   - Test: POST /api/v1/resumes/match (should accept request)
+   - Test: GET /api/v1/job-offers (should return 200 or 401)
+   - All endpoints should be reachable
+
+✅ Graceful Shutdown:
+   - Test: SIGTERM handling
+   - Verify: Server shuts down cleanly
+   - Timeout: 10 seconds
+
+===== 6. INTEGRATION VALIDATION =====
+
+✅ PostgreSQL Connection:
+   - Check: Database connection string is configured
+   - Verify: Connection can be established
+   - Test query: `SELECT 1` (should succeed)
+   - If fails: WARNING (PostgreSQL not available)
+
+✅ Redis Connection:
+   - Check: Redis connection string is configured
+   - Verify: Connection can be established
+   - Test: PING command (should return PONG)
+   - If fails: WARNING (Redis not available)
+
+✅ Database Migrations:
+   Command: Check if migrations are up to date
+   - Tool: Atlas (as specified by user)
+   - Command: `atlas schema apply --url <database_url>` (dry run)
+   - Verify: No pending migrations
+   - If pending: WARNING (run migrations before deployment)
+
+===== 7. CLEANUP =====
+
+✅ Clean Build:
+   Command: `rm -rf ./bin/* && go clean -cache`
+   - Remove: All binaries
+   - Clear: Go build cache
+   - Verify: Clean state
+
+✅ Docker Cleanup:
+   Command: `docker rmi cv-builder-api:latest`
+   - Remove: Docker images
+   - Optional: Prune unused images
+
+REPORT FORMAT:
+---
+Backend API Build: [SUCCESS / FAILURE]
+
+Environment: [local / production / docker]
+
+PRE-BUILD:
+✅ Go Version: [PASS/FAIL]
+   Version: <detected version>
+   
+✅ Dependencies: [PASS/FAIL]
+   Status: <tidy/needs tidy>
+   
+✅ Module Verification: [PASS/FAIL]
+   Issues: <list>
+
+BUILD:
+✅ Debug Build: [PASS/FAIL]
+   Binary: ./bin/cv-builder-api
+   Size: <size>
+   
+✅ Production Build: [PASS/FAIL]
+   Binary: ./bin/cv-builder-api-prod
+   Size: <size>
+   
+✅ Linux Build: [PASS/FAIL]
+   Binary: ./bin/cv-builder-api-linux
+   Size: <size>
+
+DOCKER:
+✅ Docker Build: [PASS/FAIL]
+   Image: cv-builder-api
+   Size: <size>
+   
+✅ Docker Inspection: [PASS/FAIL]
+   Issues: <list>
+   
+✅ Docker Security: [PASS/FAIL]
+   Vulnerabilities: <count> (Critical: <c>, High: <h>, Medium: <m>)
+
+RUN:
+✅ Server Started: [PASS/FAIL]
+   Port: <port>
+   PID: <pid>
+   
+✅ Health Check: [PASS/FAIL]
+   Endpoint: /api/v1/health
+   Response: <status>
+   
+✅ Readiness Check: [PASS/FAIL]
+   Endpoint: /api/v1/ready
+   Response: <status>
+   
+✅ Endpoints Test: [PASS/FAIL]
+   Tested: <count> endpoints
+   Failed: <count>
+
+INTEGRATION:
+✅ PostgreSQL: [PASS/FAIL]
+   Status: <connected/not connected>
+   
+✅ Redis: [PASS/FAIL]
+   Status: <connected/not connected>
+   
+✅ Migrations: [PASS/FAIL]
+   Status: <up to date/pending>
+   Pending: <count> migrations
+
+SUMMARY:
+Build Time: <duration>
+Binaries Created: <count>
+Docker Images: <count>
+Validation: [PASSED / FAILED]
+
+BLOCKERS: <list of blocking issues>
+WARNINGS: <list of warnings>
+---
+
+BLOCKING CONDITIONS:
+- Go version < 1.21
+- Dependency verification fails
+- Build compilation fails
+- Binary not created
+- Health check fails
+- Critical Docker security vulnerabilities
+
+NON-BLOCKING (Warnings):
+- Code formatting issues
+- Docker security warnings (non-critical)
+- PostgreSQL/Redis not available (for local dev)
+- Pending migrations (for deployment)
+- Large binary size
+
+TIMEOUT: 300 seconds (full build + validation)
+"""
+
+[tools.bash]
+permission = "allow"
+allowed_commands = [
+  "go version",
+  "go mod",
+  "go build",
+  "go clean",
+  "docker build",
+  "docker tag",
+  "docker push",
+  "docker inspect",
+  "docker scan",
+  "docker rmi",
+  "curl",
+  "atlas",
+  "chmod",
+  "ls",
+  "du",
+  "file",
+  "pkill",
+  "ps"
+]
+timeouts = { 
+  default = 120, 
+  go_build = 180, 
+  docker_build = 180, 
+  server_start = 30 
+}

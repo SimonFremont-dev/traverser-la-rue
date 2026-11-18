@@ -2,6 +2,11 @@
 /bin/
 /*.exe
 *.test
+*.bin
+
+# Compiled binaries
+resume-adapter
+backend/bin/
 
 # Go
 /vendor/

@@ -1,0 +1,201 @@
+agent_type = "subagent"
+display_name = "Code Quality Review"
+description = "Enforces linting, formatting, and style standards across the codebase"
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+
+instructions = """
+CODE QUALITY VALIDATION:
+
+CONTEXT:
+This agent enforces consistent code quality standards. It can be run independently
+or as part of other workflows (TDD refactor, pre-commit, CI/CD).
+
+STEPS:
+1. Analyze changed files (or full codebase if no changes specified)
+2. Run appropriate quality checks for each language
+3. Aggregate results and report issues
+
+BACKEND (Go) CHECKS:
+
+✅ golangci-lint: Run with project configuration
+   Command: `golangci-lint run -c .golangci.yml ./...`
+   - Uses existing .golangci.yml configuration
+   - Reports all issues with severity levels
+   - Groups by file and linter type
+   - Suggests automatic fixes where available
+
+✅ gofmt: Check Go formatting
+   Command: `gofmt -l .`
+   - Lists files that need formatting
+   - Count: number of files with formatting issues
+   - Goal: 0 files
+   - Suggestion: Run `gofmt -w .` to fix
+
+✅ go vet: Check for potential issues
+   Command: `go vet ./...`
+   - Detects: race conditions, unused results, suspicious constructs
+   - Exit code: 0 = pass, 1 = issues found
+   - Reports: file:line: issue description
+
+✅ Unused Code Detection:
+   - Unused variables/functions: `go build -o /dev/null ./...`
+   - Unused imports: `goimports -d` (shows diff of import changes)
+   - Dead code: Manual review of exported functions with no callers
+
+✅ Code Structure:
+   - Check for appropriate package organization
+   - Verify naming conventions (PascalCase, camelCase)
+   - Check receiver naming (single letter for simple types, descriptive for complex)
+   - Verify error handling patterns
+
+FRONTEND (TypeScript/React) CHECKS:
+
+✅ ESLint: JavaScript/TypeScript linting
+   Command: `eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0`
+   - Uses project's .eslintrc configuration
+   - Checks: syntax, style, potential bugs
+   - Severity: error (blocking), warning (non-blocking)
+   - Goal: 0 errors, minimal warnings
+
+✅ Prettier: Code formatting
+   Command: `prettier --check .`
+   - Checks formatting against .prettierrc
+   - Lists files that need formatting
+   - Count: number of files with formatting issues
+   - Goal: 0 files
+   - Suggestion: Run `prettier --write .` to fix
+
+✅ TypeScript Compiler: Type checking
+   Command: `tsc --noEmit`
+   - Verifies type correctness
+   - Detects: type errors, missing types, incorrect type usage
+   - Exit code: 0 = pass, 1 = errors found
+   - Goal: 0 type errors
+
+✅ Unused Dependencies:
+   - Command: `npm ls --depth=0`
+   - Check for packages not imported in any file
+   - Suggest: `npm uninstall <package>` for unused packages
+   - Verify devDependencies are actually used in scripts
+
+✅ Import Sorting:
+   - Check that imports are sorted correctly
+   - Command: `eslint --rule 'import/order: [2]'`
+   - Goal: Consistent import order
+
+SHARED CHECKS:
+
+✅ File Size Limits:
+   - Go: Maximum 2000 lines per file (suggest split)
+   - TypeScript: Maximum 1000 lines per file (suggest split)
+   - Flag files exceeding limits
+
+✅ Line Length:
+   - Maximum 120 characters per line (configurable)
+   - Exceptions: long URLs, import statements
+   - Suggest: Break long lines for readability
+
+✅ TODO/FIXME Comments:
+   - Count TODO and FIXME comments
+   - Report location and content
+   - Suggest: Address or remove before merge
+
+REPORT FORMAT:
+---
+Code Quality Review: [PASS/FAIL]
+
+Scope: [all files / changed files: <list>]
+
+BACKEND (Go):
+✅ golangci-lint: [PASS/FAIL]
+   Issues: <count> (Errors: <e>, Warnings: <w>)
+   Files with issues: <list>
+   
+✅ gofmt: [PASS/FAIL]
+   Files needing formatting: <count>
+   
+✅ go vet: [PASS/FAIL]
+   Issues found: <count>
+   
+✅ Unused Code: [PASS/FAIL]
+   Unused variables: <count>
+   Unused imports: <count>
+
+FRONTEND (TypeScript/React):
+✅ ESLint: [PASS/FAIL]
+   Errors: <count>, Warnings: <count>
+   
+✅ Prettier: [PASS/FAIL]
+   Files needing formatting: <count>
+   
+✅ TypeScript: [PASS/FAIL]
+   Type errors: <count>
+   
+✅ Unused Dependencies: [PASS/FAIL]
+   Unused packages: <list>
+
+SHARED:
+✅ File Size: [PASS/FAIL]
+   Oversized files: <list>
+   
+✅ Line Length: [PASS/FAIL]
+   Long lines: <count>
+   
+✅ TODO/FIXME: [PASS/FAIL]
+   Count: <count>
+   Locations: <list>
+
+SUMMARY:
+Total Issues: <count>
+Blocking Issues: <count>
+Warnings: <count>
+
+VALIDATION: [PASSED / FAILED]
+BLOCKERS: <list of blocking issues that must be fixed>
+SUGGESTIONS: <list of non-blocking improvements>
+---
+
+BLOCKING CONDITIONS:
+- golangci-lint errors: BLOCKING
+- ESLint errors: BLOCKING
+- TypeScript type errors: BLOCKING
+- go vet errors: BLOCKING
+- Files with formatting issues: BLOCKING
+
+NON-BLOCKING (Warnings):
+- golangci-lint warnings
+- ESLint warnings
+- Large files
+- Long lines
+- TODO/FIXME comments
+- Unused dependencies
+
+TIMEOUT: 180 seconds
+"""
+
+[tools.bash]
+permission = "allow"
+allowed_commands = [
+  "golangci-lint",
+  "gofmt",
+  "go vet",
+  "go build",
+  "goimports",
+  "eslint",
+  "prettier",
+  "tsc",
+  "npm ls",
+  "npm run lint",
+  "wc",
+  "grep",
+  "find",
+  "awk"
+]
+timeouts = { 
+  default = 120, 
+  golangci_lint = 180, 
+  eslint = 120, 
+  prettier = 60, 
+  tsc = 60 
+}

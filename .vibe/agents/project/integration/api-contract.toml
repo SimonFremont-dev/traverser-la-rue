@@ -1,0 +1,709 @@
+agent_type = "subagent"
+display_name = "API Contract Validation"
+description = "Validates the contract between Go backend API and React frontend: endpoints, types, errors, auth, CORS"
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+
+instructions = """
+API CONTRACT VALIDATION:
+
+CONTEXT:
+This agent validates the contract between the Go backend API and React frontend.
+Since the backend is API-only, the frontend is the primary consumer of all API endpoints.
+This ensures consistency, prevents breaking changes, and catches integration issues early.
+
+API OVERVIEW:
+- Base URL: /api/v1
+- Backend: Go (net/http, gin, echo, chi, or similar)
+- Frontend: React + TypeScript
+- Format: RESTful JSON API
+- Authentication: None (for now), or Bearer token (future)
+- CORS: Required for development (localhost:3000 -> localhost:8080)
+
+CONTRACT DEFINITION:
+The API contract consists of:
+1. Endpoints: HTTP methods + paths
+2. Request/Response types: JSON schemas
+3. Status codes: HTTP status codes
+4. Error format: Consistent error responses
+5. Headers: Required and optional headers
+6. Authentication: Auth mechanisms
+7. Rate Limiting: Request limits
+
+===== 1. ENDPOINT VALIDATION =====
+
+✅ Endpoint Existence:
+   - Verify: All documented endpoints exist
+   - Method: GET, POST, PUT, DELETE, PATCH
+   - Path: /api/v1/*
+   - Test: Send request to each endpoint
+   - If 404: Endpoint does not exist (BLOCKING)
+
+✅ Expected Endpoints:
+   Resume Management:
+   - GET    /api/v1/resumes              - List all resumes
+   - POST   /api/v1/resumes              - Create a new resume
+   - GET    /api/v1/resumes/{id}         - Get a specific resume
+   - PUT    /api/v1/resumes/{id}         - Update a resume
+   - DELETE /api/v1/resumes/{id}         - Delete a resume
+   
+   Matching:
+   - POST   /api/v1/resumes/{id}/match   - Match resume against job offer
+   - POST   /api/v1/resumes/match         - Match without specific resume ID
+   
+   Adaptation:
+   - POST   /api/v1/resumes/{id}/adapt  - Adapt resume for job offer
+   - POST   /api/v1/resumes/adapt        - Adapt without specific resume ID
+   
+   Analysis:
+   - POST   /api/v1/resumes/{id}/analyze - Analyze resume against job offer
+   - POST   /api/v1/resumes/analyze       - Analyze without specific resume ID
+   
+   Job Offers:
+   - GET    /api/v1/job-offers           - List all job offers
+   - POST   /api/v1/job-offers           - Create a job offer
+   - GET    /api/v1/job-offers/{id}      - Get a specific job offer
+   - DELETE /api/v1/job-offers/{id}      - Delete a job offer
+   
+   Skills:
+   - GET    /api/v1/skills               - List all skills
+   - POST   /api/v1/skills               - Add a skill
+   - DELETE /api/v1/skills/{id}          - Delete a skill
+   
+   Health:
+   - GET    /api/v1/health               - Health check
+   - GET    /api/v1/ready                - Readiness check
+
+✅ Endpoint Testing:
+   For each endpoint:
+   - Test: Valid request
+   - Test: Invalid request (wrong method, wrong path, wrong data)
+   - Test: Edge cases (empty data, large data, special characters)
+   - Verify: Correct HTTP status code
+   - Verify: Response format
+   - Verify: No panics or crashes
+
+✅ Endpoint Documentation:
+   - Check: Each endpoint has documentation
+   - Check: Documentation is up to date
+   - Check: Examples are provided
+   - Format: OpenAPI/Swagger or Markdown
+
+===== 2. REQUEST/RESPONSE TYPE VALIDATION =====
+
+✅ Type Compatibility:
+   - Backend (Go): Struct types
+   - Frontend (TypeScript): Interface/types
+   - Verify: JSON serialization/deserialization works
+   - Verify: Field names match (snake_case vs camelCase)
+   - Verify: Required fields are present
+   - Verify: Optional fields are handled
+
+✅ Field Naming Convention:
+   - Backend: JSON tags should use snake_case or camelCase consistently
+   - Frontend: Interface properties should match backend JSON tags
+   - Example: Backend `json:"first_name"` -> Frontend `firstName: string`
+   - Suggestion: Use consistent naming (preferably camelCase for API)
+
+✅ Data Type Mapping:
+   Go -> TypeScript:
+   - string     -> string
+   - int, int64  -> number
+   - float64    -> number
+   - bool       -> boolean
+   - []T        -> T[]
+   - map[string]T -> Record<string, T> or { [key: string]: T }
+   - time.Time  -> string (ISO 8601) or Date
+   - uuid.UUID  -> string
+   - null       -> null or undefined
+   - *T         -> T | null
+
+✅ Request Validation:
+   - Test: Send request with valid data
+   - Test: Send request with invalid data
+   - Test: Send request with missing required fields
+   - Test: Send request with extra fields
+   - Verify: Backend validates request data
+   - Verify: Appropriate error responses
+
+✅ Response Validation:
+   - Test: Each endpoint returns expected response format
+   - Test: Response includes all expected fields
+   - Test: Response handles null/empty values correctly
+   - Verify: Response JSON is valid
+   - Verify: Response types match TypeScript interfaces
+
+===== 3. DATA SCHEMA VALIDATION =====
+
+✅ Resume Schema:
+   Fields:
+   - id: string (uuid)
+   - title: string
+   - contact: object (name, email, phone, linkedin, github, location)
+   - summary: string
+   - experience: array of objects
+   - education: array of objects
+   - skills: array of objects
+   - projects: array of objects (optional)
+   - created_at: string (ISO 8601 timestamp)
+   - updated_at: string (ISO 8601 timestamp)
+   
+   TypeScript Interface:
+   ```typescript
+   interface Resume {
+     id: string;
+     title: string;
+     contact: Contact;
+     summary: string;
+     experience: Experience[];
+     education: Education[];
+     skills: Skill[];
+     projects?: Project[];
+     createdAt: string;
+     updatedAt: string;
+   }
+   ```
+
+✅ Job Offer Schema:
+   Fields:
+   - id: string (uuid)
+   - title: string
+   - company: string
+   - location: string
+   - description: string
+   - requirements: object (required_skills, preferred_skills, experience)
+   - metadata: object (format, source, parsed_at)
+   - raw_text: string (optional)
+   - created_at: string (ISO 8601 timestamp)
+   
+   TypeScript Interface:
+   ```typescript
+   interface JobOffer {
+     id: string;
+     title: string;
+     company: string;
+     location: string;
+     description: string;
+     requirements: Requirements;
+     metadata: Metadata;
+     rawText?: string;
+     createdAt: string;
+   }
+   ```
+
+✅ Match Result Schema:
+   Fields:
+   - resume_id: string
+   - offer_id: string
+   - matches: array of Match objects
+   - score: number (0-100)
+   - summary: string
+   - created_at: string (ISO 8601 timestamp)
+   
+   Match Object:
+   - skill: string
+   - score: number (0-100)
+   - source: string (experience, education, project, manual)
+   - type: string (exact, partial, alternative)
+   
+   TypeScript Interface:
+   ```typescript
+   interface MatchResult {
+     resumeId: string;
+     offerId: string;
+     matches: Match[];
+     score: number;
+     summary: string;
+     createdAt: string;
+   }
+   ```
+
+✅ Analysis Schema:
+   Fields:
+   - resume_id: string
+   - offer_id: string
+   - score: number (0-100)
+   - matches: Match[]
+   - gaps: Gap[]
+   - suggestions: Suggestion[]
+   - created_at: string
+   
+   Gap Object:
+   - skill: string
+   - required: boolean
+   - missing: boolean
+   
+   Suggestion Object:
+   - type: string (add_experience, add_skill, reword)
+   - description: string
+   - priority: string (high, medium, low)
+   
+   TypeScript Interface:
+   ```typescript
+   interface Analysis {
+     resumeId: string;
+     offerId: string;
+     score: number;
+     matches: Match[];
+     gaps: Gap[];
+     suggestions: Suggestion[];
+     createdAt: string;
+   }
+   ```
+
+✅ Skill Schema:
+   Fields:
+   - id: string (uuid)
+   - name: string
+   - category: string
+   - proficiency: string (beginner, intermediate, advanced, expert)
+   - years: number
+   - keywords: string[]
+   - created_at: string (ISO 8601 timestamp)
+   
+   TypeScript Interface:
+   ```typescript
+   interface Skill {
+     id: string;
+     name: string;
+     category: string;
+     proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+     years: number;
+     keywords: string[];
+     createdAt: string;
+   }
+   ```
+
+✅ Error Schema:
+   Fields:
+   - error: string (human-readable error message)
+   - code: string (machine-readable error code)
+   - details: any (additional error details)
+   - timestamp: string (ISO 8601 timestamp)
+   
+   TypeScript Interface:
+   ```typescript
+   interface ApiError {
+     error: string;
+     code: string;
+     details?: any;
+     timestamp: string;
+   }
+   ```
+
+===== 4. STATUS CODE VALIDATION =====
+
+✅ Expected Status Codes:
+   Success (2xx):
+   - 200 OK: Successful GET, PUT, PATCH
+   - 201 Created: Successful POST (resource created)
+   - 204 No Content: Successful DELETE
+   
+   Client Error (4xx):
+   - 400 Bad Request: Invalid request data
+   - 401 Unauthorized: Authentication required (future)
+   - 403 Forbidden: Authentication successful but forbidden
+   - 404 Not Found: Resource not found
+   - 405 Method Not Allowed: Wrong HTTP method
+   - 422 Unprocessable Entity: Validation error
+   - 429 Too Many Requests: Rate limit exceeded
+   
+   Server Error (5xx):
+   - 500 Internal Server Error: Unexpected error
+   - 502 Bad Gateway: Gateway error
+   - 503 Service Unavailable: Service down
+
+✅ Status Code Testing:
+   - Test: Each endpoint returns correct status code for each scenario
+   - Test: Success scenarios return 2xx
+   - Test: Client errors return 4xx
+   - Test: Server errors return 5xx
+   - Verify: Status codes match documentation
+
+===== 5. ERROR FORMAT VALIDATION =====
+
+✅ Error Response Format:
+   All error responses should have consistent format:
+   ```json
+   {
+     "error": "Human readable error message",
+     "code": "ERROR_CODE",
+     "details": { ... },
+     "timestamp": "2024-01-01T00:00:00Z"
+   }
+   ```
+
+✅ Error Code Definitions:
+   - RESUME_NOT_FOUND: Resume with given ID not found
+   - JOB_OFFER_NOT_FOUND: Job offer with given ID not found
+   - SKILL_NOT_FOUND: Skill with given ID not found
+   - INVALID_INPUT: Request data validation failed
+   - MISSING_FIELD: Required field is missing
+   - INVALID_FORMAT: Field format is invalid
+   - DUPLICATE_ENTRY: Resource already exists
+   - RATE_LIMIT_EXCEEDED: Too many requests
+   - INTERNAL_ERROR: Unexpected internal error
+
+✅ Error Testing:
+   - Test: Trigger each error type
+   - Verify: Error response has all required fields
+   - Verify: Error code is correct
+   - Verify: Error message is descriptive
+   - Verify: Timestamp is in correct format
+   - Verify: Details contain useful information
+
+===== 6. HEADER VALIDATION =====
+
+✅ Required Request Headers:
+   - Content-Type: application/json (for POST, PUT, PATCH)
+   - Accept: application/json
+   - Authorization: Bearer <token> (future, if auth added)
+
+✅ Required Response Headers:
+   - Content-Type: application/json
+   - Cache-Control: appropriate caching headers
+   - CORS headers (if CORS enabled)
+
+✅ CORS Headers (Development):
+   - Access-Control-Allow-Origin: http://localhost:3000
+   - Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
+   - Access-Control-Allow-Headers: Content-Type, Authorization
+   - Access-Control-Allow-Credentials: true (if using credentials)
+   - Access-Control-Expose-Headers: (custom headers to expose)
+
+✅ CORS Headers (Production):
+   - Access-Control-Allow-Origin: <frontend-domain>
+   - Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
+   - Access-Control-Allow-Headers: Content-Type, Authorization
+   - Vary: Origin
+
+✅ Header Testing:
+   - Test: Requests include required headers
+   - Test: Responses include required headers
+   - Test: CORS headers allow frontend to access API
+   - Verify: Headers are correctly formatted
+
+===== 7. CORS VALIDATION =====
+
+✅ CORS Preflight (OPTIONS):
+   - Test: Send OPTIONS request to each endpoint
+   - Verify: Response status is 200 or 204
+   - Verify: CORS headers are present
+   - Verify: Request method is allowed
+   - Verify: Request headers are allowed
+
+✅ CORS Simple Requests:
+   - Test: Send GET, POST requests with CORS headers
+   - Verify: Response includes CORS headers
+   - Verify: Frontend can read response
+   - Verify: No CORS errors in browser console
+
+✅ CORS Credentialed Requests:
+   - If using cookies or auth headers:
+   - Verify: Access-Control-Allow-Credentials: true
+   - Verify: Access-Control-Allow-Origin is not *
+   - Verify: Origin is in allowed list
+
+✅ CORS Configuration:
+   - Backend: Must be configured to allow frontend origin
+   - Development: http://localhost:3000
+   - Production: <frontend-domain>
+   - Verify: CORS middleware is configured
+   - Verify: CORS is not too permissive (avoid * for production)
+
+===== 8. OPENAPI/SWAGGER VALIDATION =====
+
+✅ OpenAPI Specification:
+   - File: openapi.yaml or openapi.json
+   - Format: OpenAPI 3.0.3
+   - Contains: All endpoints, schemas, examples
+   - Generated: From Go code or manually maintained
+
+✅ OpenAPI Generation (if using swag):
+   Command: `swag init -g backend/main.go -o backend/docs`
+   - Generate: OpenAPI spec from Go code
+   - Verify: All endpoints are documented
+   - Verify: All schemas are defined
+   - Verify: Examples are included
+
+✅ OpenAPI Validation:
+   - Validate: OpenAPI spec is valid
+   - Command: `swagger-cli validate openapi.yaml`
+   - Verify: No validation errors
+   - Verify: All required fields are present
+
+✅ OpenAPI vs Implementation:
+   - Compare: OpenAPI spec with actual implementation
+   - Verify: All OpenAPI endpoints exist
+   - Verify: All implementation endpoints are in OpenAPI
+   - Verify: Schemas match
+   - Verify: Examples are accurate
+
+✅ OpenAPI for Frontend:
+   - Use: OpenAPI to generate TypeScript types
+   - Tool: openapi-typescript or swagger-typescript-api
+   - Command: `npx openapi-typescript openapi.yaml --output types/api.d.ts`
+   - Verify: Generated types match backend
+   - Verify: Generated types are used in frontend
+
+===== 9. TYPESCRIPT TYPE GENERATION =====
+
+✅ Generate TypeScript Types:
+   From OpenAPI:
+   - Use: openapi-typescript
+   - Command: `npx openapi-typescript ../backend/openapi.yaml --output src/types/api.d.ts`
+   - Output: src/types/api.d.ts
+   - Verify: Types are generated correctly
+   - Verify: Types are used in frontend
+
+✅ Manual Type Definitions:
+   If not using OpenAPI:
+   - Define: TypeScript interfaces matching Go structs
+   - Location: src/types/api.ts or similar
+   - Verify: Types match Go structs exactly
+   - Verify: Types are used consistently
+
+✅ Type Validation:
+   - Test: TypeScript compilation (tsc --noEmit)
+   - Verify: No type errors
+   - Verify: All API responses can be typed
+   - Verify: All API requests can be typed
+
+===== 10. INTEGRATION TESTING =====
+
+✅ Full Stack Integration:
+   - Start: Backend API server
+   - Start: Frontend development server
+   - Test: Frontend can connect to backend
+   - Test: All API calls work from frontend
+   - Test: Data flows correctly between frontend and backend
+
+✅ End-to-End Scenarios:
+   Scenario 1: Create and match a resume
+   - Frontend: Create resume
+   - Backend: Save resume
+   - Frontend: Match resume against job offer
+   - Backend: Process and return match results
+   - Frontend: Display match results
+   - Verify: All steps complete successfully
+   
+   Scenario 2: List and analyze resumes
+   - Frontend: Fetch list of resumes
+   - Backend: Return resume list
+   - Frontend: Select resume and analyze against job offer
+   - Backend: Process and return analysis
+   - Frontend: Display analysis
+   - Verify: All steps complete successfully
+
+✅ Error Scenarios:
+   - Test: Network errors
+   - Test: Server errors
+   - Test: Validation errors
+   - Test: Authentication errors (if applicable)
+   - Verify: Frontend handles errors gracefully
+   - Verify: User sees appropriate error messages
+
+✅ Performance Testing:
+   - Test: API response time
+   - Test: Frontend rendering with API data
+   - Test: Large data sets
+   - Verify: Performance is acceptable
+   - Target: < 500ms for typical API calls
+   - Target: < 1000ms for complex operations (matching, analysis)
+
+===== 11. CONTRACT CHANGE MANAGEMENT =====
+
+✅ Breaking Changes:
+   - Detect: Changes that break the contract
+   - Examples:
+     - Endpoint removed
+     - Request/response field removed
+     - Required field added
+     - Type changed
+     - Status code changed
+   - If breaking change: BLOCK
+   - Suggest: Version the API or provide migration path
+
+✅ Non-Breaking Changes:
+   - Examples:
+     - New endpoint added
+     - Optional field added
+     - New enum value added
+     - New error code added
+   - If non-breaking: ALLOW
+   - Suggest: Update documentation
+
+✅ Versioning Strategy:
+   - Current: /api/v1/*
+   - Future: /api/v2/* for breaking changes
+   - Deprecation: Deprecate old versions with warning
+   - Sunset: Remove old versions after deprecation period
+   - Documentation: Maintain API version history
+
+✅ Change Documentation:
+   - Document: All contract changes
+   - Location: CHANGELOG.md or API documentation
+   - Include: Breaking vs non-breaking
+   - Include: Migration instructions
+   - Include: Deprecation notices
+
+REPORT FORMAT:
+---
+API Contract Validation: [PASS / FAIL]
+
+Backend: Go API (port: <port>)
+Frontend: React/TypeScript (port: <port>)
+OpenAPI: <file> (version: <version>)
+
+ENDPOINTS:
+✅ Endpoint Existence: [PASS/FAIL]
+   Total: <count>
+   Missing: <list>
+   Extra: <list>
+   
+✅ Endpoint Testing: [PASS/FAIL]
+   Tested: <count>
+   Passed: <count>
+   Failed: <count>
+   Failures: <list>
+
+TYPES:
+✅ Type Compatibility: [PASS/FAIL]
+   Backend Types: <count>
+   Frontend Types: <count>
+   Mismatches: <list>
+   
+✅ Schema Validation: [PASS/FAIL]
+   Resume: [PASS/FAIL]
+   Job Offer: [PASS/FAIL]
+   Match Result: [PASS/FAIL]
+   Analysis: [PASS/FAIL]
+   Skill: [PASS/FAIL]
+   Error: [PASS/FAIL]
+
+STATUS CODES:
+✅ Status Codes: [PASS/FAIL]
+   Expected: <list>
+   Unexpected: <list>
+
+ERROR FORMAT:
+✅ Error Format: [PASS/FAIL]
+   Consistent: [yes/no]
+   Required Fields: <list>
+   Missing Fields: <list>
+
+HEADERS:
+✅ Request Headers: [PASS/FAIL]
+   Required: <list>
+   Missing: <list>
+   
+✅ Response Headers: [PASS/FAIL]
+   Required: <list>
+   Missing: <list>
+
+CORS:
+✅ CORS Configuration: [PASS/FAIL]
+   Preflight: [PASS/FAIL]
+   Simple Requests: [PASS/FAIL]
+   Credentialed: [PASS/FAIL]
+
+OPENAPI:
+✅ OpenAPI Spec: [PASS/FAIL]
+   Valid: [yes/no]
+   Endpoints: <count>
+   Schemas: <count>
+   
+✅ OpenAPI vs Implementation: [PASS/FAIL]
+   Matching: <count>
+   Missing in Spec: <list>
+   Missing in Implementation: <list>
+
+TYPESCRIPT:
+✅ Type Generation: [PASS/FAIL]
+   Generated: [yes/no]
+   File: <path>
+   Errors: <count>
+
+INTEGRATION:
+✅ Full Stack: [PASS/FAIL]
+   Scenarios Tested: <count>
+   Passed: <count>
+   Failed: <count>
+   
+✅ Error Handling: [PASS/FAIL]
+   Scenarios Tested: <count>
+   Passed: <count>
+   Failed: <count>
+   
+✅ Performance: [PASS/FAIL]
+   Average Response Time: <ms>
+   Slowest Endpoint: <endpoint> (<ms>)
+
+CHANGES:
+✅ Breaking Changes: [PASS/FAIL]
+   Detected: <count>
+   List: <list>
+   
+✅ Non-Breaking Changes: [PASS/FAIL]
+   Detected: <count>
+   List: <list>
+
+SUMMARY:
+Contract Status: [VALID / INVALID / DEPRECATED]
+Validation: [PASSED / FAILED]
+Compatibility: [FULL / PARTIAL / NONE]
+
+BLOCKERS: <list of blocking contract violations>
+WARNINGS: <list of non-blocking issues>
+---
+
+BLOCKING CONDITIONS:
+- Endpoint missing
+- Breaking changes without versioning
+- Type incompatibility
+- Status code mismatch
+- Error format inconsistency
+- CORS misconfiguration
+- OpenAPI validation failure
+- Integration test failure
+
+NON-BLOCKING (Warnings):
+- Non-breaking changes without documentation
+- Optional field missing
+- New endpoint not in OpenAPI
+- Performance below target
+- TypeScript type generation warnings
+
+TIMEOUT: 300 seconds (comprehensive contract validation)
+"""
+
+[tools.bash]
+permission = "allow"
+allowed_commands = [
+  "curl",
+  "httpie",
+  "wget",
+  "swag",
+  "swagger-cli",
+  "openapi-typescript",
+  "npx",
+  "node",
+  "npm",
+  "tsc",
+  "cat",
+  "grep",
+  "awk",
+  "sed",
+  "find",
+  "diff",
+  "jq",
+  "python3",
+  "go run",
+  "go build"
+]
+timeouts = { 
+  default = 60, 
+  http_requests = 30, 
+  integration_tests = 120, 
+  full_validation = 300 
+}

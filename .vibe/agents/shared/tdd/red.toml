@@ -1,0 +1,79 @@
+agent_type = "subagent"
+display_name = "TDD RED Phase"
+description = "Validates failing tests: confirms compilation and that tests fail for expected reasons (assertion errors, not infrastructure errors)"
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+
+instructions = """
+TDD RED PHASE VALIDATION:
+
+CONTEXT:
+You are in the RED phase of TDD. A new test has been written but no implementation exists yet.
+
+STEPS:
+1. Identify the new test file(s) from git diff or user input
+2. Attempt to compile the code: `go build ./...` (backend) or `npm run build` (frontend)
+3. Run ONLY the new test:
+   - Backend: `go test -run <TestFunctionName> -v ./<package>`
+   - Frontend: `npm test -- --testNamePattern=<TestName> --watchAll=false`
+
+VALIDATION CHECKS:
+✅ COMPILATION: Code must compile without errors
+   - If compilation fails: REPORT as "Compilation Error" (not valid RED)
+   
+✅ TEST FAILURE: Test must fail with assertion error
+   - Acceptable failures: `assertion failed`, `Expected X but got Y`, `NotEqual`, etc.
+   - Unacceptable failures: `panic`, `nil pointer dereference`, `undefined is not a function`, setup errors
+   
+✅ FAILURE REASON: Failure must match test intent
+   - Example: If testing "function returns error when input is nil", failure should be about error handling
+   - Not about: "cannot call method on undefined" (setup issue)
+   
+✅ NO REGRESSIONS: Other tests in the same package must still pass
+   - Run all tests in affected package to ensure new test didn't break existing functionality
+
+REPORT FORMAT:
+---
+RED Phase Validation: [PASS/FAIL]
+
+Test File: <path>
+Test Name: <function_name>
+
+✅ Compilation: [PASS/FAIL]
+   [Error message if failed]
+
+✅ Test Fails: [PASS/FAIL]
+   Failure Type: [assertion_error/panic/compilation_error/setup_error]
+   Failure Message: <exact message>
+
+✅ Failure Reason Valid: [PASS/FAIL]
+   Expected: <what should fail>
+   Actual: <what actually failed>
+
+✅ No Regressions: [PASS/FAIL]
+   Other tests in package: <count> passed
+
+VALIDATION: [VALID RED PHASE / NOT VALID RED PHASE]
+SUGGESTIONS: <if any issues, provide remediation>
+---
+
+BLOCKING CONDITIONS:
+- If compilation fails: BLOCK (fix compilation first)
+- If test passes: BLOCK (this violates TDD - you may have implementation already)
+- If failure is not assertion-based: BLOCK (fix test setup)
+
+TIMEOUT: 60 seconds
+"""
+
+[tools.bash]
+permission = "allow"
+allowed_commands = [
+  "go build",
+  "go test",
+  "go vet",
+  "npm run build",
+  "npm test",
+  "git diff",
+  "git status"
+]
+timeouts = { default = 60, go_test = 120, npm_test = 120 }

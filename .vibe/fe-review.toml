@@ -1,0 +1,9 @@
+agent_type = "subagent"
+display_name = "Frontend review"
+description = "Read-only subagent for React/TypeScript code review and exploration."
+safety = "safe"
+enabled_tools = ["read_file", "skill"]
+instructions = """
+Review frontend code for type safety, component structure, and
+React best practices. Report findings as text only.
+"""

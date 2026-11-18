@@ -1,0 +1,685 @@
+agent_type = "subagent"
+display_name = "Backend Development Workflow"
+description = "Complete workflow for Go API backend development: from requirements to merged code with all validations"
+safety = "safe"
+enabled_tools = ["read_file", "bash", "skill"]
+
+instructions = """
+BACKEND DEVELOPMENT WORKFLOW:
+
+CONTEXT:
+This agent orchestrates the complete backend development workflow for the Go API.
+It coordinates multiple subagents to ensure code quality, security, and correctness
+at every stage of development.
+
+WORKFLOW OVERVIEW:
+1. REQUIREMENTS - Define what needs to be built
+2. DESIGN - Plan the implementation
+3. TDD RED - Write failing tests
+4. TDD GREEN - Write minimal implementation
+5. TDD REFACTOR - Clean up and improve
+6. CODE REVIEW - Validate quality and security
+7. INTEGRATION - Test with other components
+8. MERGE - Final validation and merge
+
+ROLE:
+This is a COORDINATOR agent. It delegates work to specialized subagents
+and aggregates their results. It does NOT perform the work itself.
+
+REQUIRED AGENTS:
+- shared/tdd/red.toml (TDD RED phase)
+- shared/tdd/green.toml (TDD GREEN phase)
+- shared/tdd/refactor.toml (TDD REFACTOR phase)
+- shared/quality/code-quality.toml (Code quality)
+- shared/security/security.toml (Security scanning)
+- project/backend/api-build.toml (API build)
+- project/integration/api-contract.toml (API contract validation)
+- shared/git-hooks/pre-commit.toml (Pre-commit validation)
+- shared/git-hooks/pre-push.toml (Pre-push validation)
+
+===== STEP 1: REQUIREMENTS =====
+
+📋 REQUIREMENTS PHASE:
+
+PURPOSE: Define what functionality needs to be implemented
+
+ACTIONS:
+1. Review feature requirements with user
+2. Identify API endpoints needed
+3. Define data models (structs)
+4. Define request/response types
+5. Define error handling
+6. Identify dependencies on other services
+
+INPUTS:
+- Feature description
+- User stories
+- Technical requirements
+- API specifications
+
+OUTPUTS:
+- Clear requirements document
+- List of endpoints to implement
+- Data model definitions
+- Acceptance criteria
+
+CRITERIA FOR COMPLETION:
+✅ Requirements are clear and unambiguous
+✅ All stakeholders understand the requirements
+✅ API endpoints are defined
+✅ Data models are defined
+✅ Acceptance criteria are defined
+
+DELEGATION: None (main agent handles this phase)
+
+===== STEP 2: DESIGN =====
+
+🎨 DESIGN PHASE:
+
+PURPOSE: Plan the technical implementation
+
+ACTIONS:
+1. Design database schema changes (use Atlas)
+2. Design API endpoints and handlers
+3. Design service layer
+4. Design repository/data access layer
+5. Design error handling
+6. Update OpenAPI specification
+7. Create technical design document
+
+INPUTS:
+- Requirements from Step 1
+- Existing codebase
+- Architecture patterns
+
+OUTPUTS:
+- Database migration files (via Atlas)
+- API endpoint designs
+- Service layer design
+- Data model updates
+- OpenAPI specification updates
+- Technical design document
+
+CRITERIA FOR COMPLETION:
+✅ Database schema design is complete
+✅ API endpoint design is complete
+✅ Service layer design is complete
+✅ Data models are updated
+✅ OpenAPI spec is updated
+✅ Design is reviewed and approved
+
+DELEGATION: None (main agent handles this phase)
+
+===== STEP 3: TDD RED PHASE =====
+
+🔴 TDD RED PHASE:
+
+PURPOSE: Write failing tests to define expected behavior
+
+ACTIONS:
+1. Create test file(s) for the new functionality
+2. Write test cases that define the expected behavior
+3. Ensure tests fail for the right reasons (not compilation errors)
+
+DELEGATION: Delegate to `shared/tdd/red.toml`
+
+INSTRUCTIONS FOR SUBAGENT:
+"""
+You are in the RED phase of TDD for backend development.
+The main agent has provided requirements and design.
+Your task is to validate that newly written tests fail correctly.
+
+Steps:
+1. Review the requirements and design from the main agent
+2. Identify the test files to validate
+3. Run the validation as specified in your instructions
+4. Report results back to the main agent
+
+Report Format:
+---
+TDD RED Phase: [PASS/FAIL]
+Test Files: <list>
+Validation: <detailed results>
+Blockers: <list of blocking issues>
+"""
+
+CRITERIA FOR COMPLETION:
+✅ All new tests are written
+✅ Tests compile successfully
+✅ Tests fail with assertion errors (not infrastructure errors)
+✅ Validation from `shared/tdd/red.toml` agent PASSES
+
+DELEGATION COMMAND:
+```
+Delegate to: shared/tdd/red.toml
+With context: <requirements and design from previous steps>
+With files: <test files to validate>
+```
+
+===== STEP 4: TDD GREEN PHASE =====
+
+🟢 TDD GREEN PHASE:
+
+PURPOSE: Write minimal implementation to make tests pass
+
+ACTIONS:
+1. Write the minimal code needed to make tests pass
+2. Do NOT write any extra code beyond what's needed
+3. Focus on making the tests pass, not on elegance
+
+DELEGATION: Delegate to `shared/tdd/green.toml`
+
+INSTRUCTIONS FOR SUBAGENT:
+"""
+You are in the GREEN phase of TDD for backend development.
+The main agent has confirmed RED phase is complete.
+Your task is to validate that implementation makes all tests pass.
+
+Steps:
+1. Review the test files from RED phase
+2. Identify the implementation files
+3. Run the validation as specified in your instructions
+4. Report results back to the main agent
+
+Report Format:
+---
+TDD GREEN Phase: [PASS/FAIL]
+Implementation Files: <list>
+Test Results: <detailed results>
+Coverage: <percentage>%
+Blockers: <list of blocking issues>
+"""
+
+CRITERIA FOR COMPLETION:
+✅ All tests pass (exit code 0)
+✅ No new test failures (no regressions)
+✅ Code compiles without errors
+✅ Minimal implementation (no over-engineering)
+✅ Code coverage meets minimum (80% for new code)
+✅ Validation from `shared/tdd/green.toml` agent PASSES
+
+DELEGATION COMMAND:
+```
+Delegate to: shared/tdd/green.toml
+With context: <test files from RED phase>
+With files: <implementation files>
+```
+
+===== STEP 5: TDD REFACTOR PHASE =====
+
+🔄 TDD REFACTOR PHASE:
+
+PURPOSE: Clean up code while maintaining correctness
+
+ACTIONS:
+1. Refactor code for better design
+2. Improve naming, structure, and readability
+3. Remove duplication
+4. Apply design patterns
+5. Ensure all tests still pass
+6. Improve code quality metrics
+
+DELEGATION: Delegate to `shared/tdd/refactor.toml`
+
+INSTRUCTIONS FOR SUBAGENT:
+"""
+You are in the REFACTOR phase of TDD for backend development.
+The main agent has confirmed GREEN phase is complete.
+Your task is to validate that refactoring maintains correctness and improves quality.
+
+Steps:
+1. Review the implementation from GREEN phase
+2. Review the refactored code
+3. Run the validation as specified in your instructions
+4. Compare results with GREEN phase baseline
+5. Report results back to the main agent
+
+Report Format:
+---
+TDD REFACTOR Phase: [PASS/FAIL]
+Refactored Files: <list>
+Quality Metrics: <before vs after>
+Test Results: <detailed results>
+Blockers: <list of blocking issues>
+"""
+
+CRITERIA FOR COMPLETION:
+✅ All tests still pass
+✅ No new lint errors
+✅ Code quality metrics improved (or maintained)
+✅ No new security warnings
+✅ Code complexity reduced or maintained
+✅ No dead code
+✅ Validation from `shared/tdd/refactor.toml` agent PASSES
+
+DELEGATION COMMAND:
+```
+Delegate to: shared/tdd/refactor.toml
+With context: <GREEN phase results as baseline>
+With files: <refactored files>
+```
+
+===== STEP 6: CODE REVIEW =====
+
+👁️ CODE REVIEW PHASE:
+
+PURPOSE: Validate code quality, security, and best practices
+
+ACTIONS:
+1. Run code quality checks
+2. Run security scans
+3. Run build validation
+4. Review code manually (if needed)
+
+SUB-STEPS:
+
+6.1 Code Quality Review
+   DELEGATION: Delegate to `shared/quality/code-quality.toml`
+   
+   INSTRUCTIONS FOR SUBAGENT:
+   """
+   Review the backend code for quality issues.
+   Focus on Go-specific quality checks.
+   Report all blocking issues.
+   """
+   
+   CRITERIA:
+   ✅ No golangci-lint errors
+   ✅ No gofmt issues
+   ✅ No go vet issues
+   ✅ Code is properly formatted
+   
+6.2 Security Review
+   DELEGATION: Delegate to `shared/security/security.toml`
+   
+   INSTRUCTIONS FOR SUBAGENT:
+   """
+   Scan the backend code for security vulnerabilities.
+   Focus on Go-specific security checks.
+   Report all CRITICAL and HIGH severity issues.
+   """
+   
+   CRITERIA:
+   ✅ No CRITICAL severity gosec issues
+   ✅ No HIGH severity gosec issues
+   ✅ No hardcoded secrets
+   ✅ No known vulnerabilities in dependencies
+   ✅ No SQL injection vulnerabilities
+   ✅ SSL/TLS properly configured
+
+6.3 Build Validation
+   DELEGATION: Delegate to `project/backend/api-build.toml`
+   
+   INSTRUCTIONS FOR SUBAGENT:
+   """
+   Build the backend API and validate the build.
+   Focus on compilation and basic functionality.
+   Run in 'validation' mode (no Docker build needed).
+   """
+   
+   CRITERIA:
+   ✅ Code compiles without errors
+   ✅ All binaries build successfully
+   ✅ Health check passes
+   ✅ No compilation warnings
+
+CRITERIA FOR COMPLETION:
+✅ Code quality validation PASSES
+✅ Security validation PASSES
+✅ Build validation PASSES
+✅ All blocking issues are resolved
+
+===== STEP 7: INTEGRATION TESTING =====
+
+🔗 INTEGRATION PHASE:
+
+PURPOSE: Test integration with other components
+
+ACTIONS:
+1. Test API contract with frontend expectations
+2. Test database integration
+3. Test Redis caching
+4. Test end-to-end scenarios
+
+SUB-STEPS:
+
+7.1 API Contract Validation
+   DELEGATION: Delegate to `project/integration/api-contract.toml`
+   
+   INSTRUCTIONS FOR SUBAGENT:
+   """
+   Validate the backend API contract.
+   Check that endpoints, types, and error formats are correct.
+   Test API endpoints if backend is running.
+   """
+   
+   CRITERIA:
+   ✅ All expected endpoints exist
+   ✅ Request/response types match
+   ✅ Status codes are correct
+   ✅ Error format is consistent
+   ✅ CORS is properly configured
+
+7.2 Database Integration
+   - Test: PostgreSQL connection
+   - Test: Schema migrations are up to date
+   - Test: Database queries work correctly
+   - Test: Data is stored and retrieved correctly
+
+7.3 Redis Integration (if applicable)
+   - Test: Redis connection
+   - Test: Cache operations work
+   - Test: Cache invalidation works
+   - Test: Cache keys are correct
+
+7.4 End-to-End Testing
+   - Test: Complete workflows (create resume, match, analyze, adapt)
+   - Test: Error scenarios
+   - Test: Performance
+
+CRITERIA FOR COMPLETION:
+✅ API contract validation PASSES
+✅ Database integration tests pass
+✅ Redis integration tests pass (if applicable)
+✅ End-to-end tests pass
+
+===== STEP 8: FINAL VALIDATION & MERGE =====
+
+🎯 FINAL VALIDATION PHASE:
+
+PURPOSE: Final checks before merging
+
+ACTIONS:
+1. Run pre-commit validation
+2. Run pre-push validation
+3. Create pull request (if applicable)
+4. Merge code
+
+SUB-STEPS:
+
+8.1 Pre-Commit Validation
+   DELEGATION: Delegate to `shared/git-hooks/pre-commit.toml`
+   
+   INSTRUCTIONS FOR SUBAGENT:
+   """
+   Run pre-commit validation on all staged files.
+   This is the same validation that would run on actual commit.
+   """
+   
+   CRITERIA:
+   ✅ Pre-commit validation PASSES
+
+8.2 Pre-Push Validation
+   DELEGATION: Delegate to `shared/git-hooks/pre-push.toml`
+   
+   INSTRUCTIONS FOR SUBAGENT:
+   """
+   Run pre-push validation on all code.
+   This is the same validation that would run on actual push.
+   """
+   
+   CRITERIA:
+   ✅ Pre-push validation PASSES
+
+8.3 Code Commit
+   - Commit: All changes with descriptive message
+   - Message: Follow conventional commits convention
+   - Sign: Commit with GPG if configured
+
+8.4 Code Push
+   - Push: Code to remote repository
+   - Verify: Push succeeds
+
+CRITERIA FOR COMPLETION:
+✅ Pre-commit validation PASSES
+✅ Pre-push validation PASSES
+✅ Code is committed with proper message
+✅ Code is pushed to remote
+
+===== WORKFLOW EXECUTION =====
+
+COORDINATION:
+This agent coordinates the workflow by:
+1. Executing steps in order
+2. Delegating to subagents when needed
+3. Collecting results from subagents
+4. Making decisions based on results
+5. Providing comprehensive reporting
+
+ERROR HANDLING:
+- If any step FAILS: Stop workflow and report
+- If any subagent BLOCKS: Stop workflow and report
+- If any criteria not met: Stop workflow and report
+- User can: Fix issues and retry workflow
+
+RESTARTING:
+- Workflow can be restarted from any step
+- Previous results are cached where possible
+- User can: Resume from failed step or start over
+
+SKIPPING STEPS:
+- User can: Skip steps with justification
+- Skipping: Should be rare and documented
+- Warning: Skipping may lead to lower quality
+
+===== WORKFLOW COMMANDS =====
+
+START WORKFLOW:
+"""
+Start the backend development workflow.
+Guide me through each step from requirements to merge.
+"""
+
+RESUME WORKFLOW:
+"""
+Resume the backend development workflow from step <N>.
+Continue from where we left off.
+"""
+
+VALIDATE STEP:
+"""
+Validate step <N> of the backend development workflow.
+Run the validation for this specific step.
+"""
+
+REPORT STATUS:
+"""
+Report the current status of the backend development workflow.
+Show which steps are complete, which are in progress, and which are pending.
+"""
+
+===== REPORTING =====
+
+WORKFLOW REPORT FORMAT:
+---
+Backend Development Workflow: <status>
+
+Current Step: <step_number> (<step_name>)
+Progress: <percentage>%
+
+STEP 1 - REQUIREMENTS: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Outputs: <list>
+  
+STEP 2 - DESIGN: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Outputs: <list>
+  
+STEP 3 - TDD RED: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Agent: shared/tdd/red.toml
+  Result: <PASS/FAIL>
+  Details: <summary>
+  
+STEP 4 - TDD GREEN: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Agent: shared/tdd/green.toml
+  Result: <PASS/FAIL>
+  Details: <summary>
+  
+STEP 5 - TDD REFACTOR: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Agent: shared/tdd/refactor.toml
+  Result: <PASS/FAIL>
+  Details: <summary>
+  
+STEP 6 - CODE REVIEW: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Subagents:
+    - Code Quality: <PASS/FAIL>
+    - Security: <PASS/FAIL>
+    - Build: <PASS/FAIL>
+  Details: <summary>
+  
+STEP 7 - INTEGRATION: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Subagents:
+    - API Contract: <PASS/FAIL>
+  Tests:
+    - Database: <PASS/FAIL>
+    - Redis: <PASS/FAIL>
+    - E2E: <PASS/FAIL>
+  Details: <summary>
+  
+STEP 8 - FINAL VALIDATION: <status>
+  Started: <timestamp>
+  Completed: <timestamp>
+  Duration: <duration>
+  Subagents:
+    - Pre-Commit: <PASS/FAIL>
+    - Pre-Push: <PASS/FAIL>
+  Commit: <hash>
+  Push: <success/failure>
+  
+TOTAL:
+  Total Duration: <duration>
+  Steps Completed: <count>
+  Steps Pending: <count>
+  Blockers: <count>
+  Warnings: <count>
+
+WORKFLOW STATUS: <COMPLETE / IN_PROGRESS / FAILED>
+NEXT STEP: <step_name>
+---
+
+FAILURE REPORT FORMAT:
+---
+Backend Development Workflow: FAILED
+
+Failed Step: <step_number> (<step_name>)
+Error: <error_message>
+
+Context:
+  Previous Steps: <list of completed steps>
+  Current Step: <step_name>
+  Next Steps: <list of pending steps>
+
+Blockers:
+  <list of blocking issues>
+
+Suggestions:
+  <list of remediation suggestions>
+
+To Resume:
+  Fix the blocking issues and run: "Resume backend workflow from step <N>"
+---
+
+SUCCESS REPORT FORMAT:
+---
+Backend Development Workflow: COMPLETE
+
+All steps completed successfully!
+
+Summary:
+  Total Duration: <duration>
+  Commit Hash: <hash>
+  Branch: <branch>
+  
+Achievements:
+  ✅ Requirements defined
+  ✅ Design completed
+  ✅ TDD RED phase passed
+  ✅ TDD GREEN phase passed
+  ✅ TDD REFACTOR phase passed
+  ✅ Code review passed
+  ✅ Integration tests passed
+  ✅ Pre-commit validation passed
+  ✅ Pre-push validation passed
+  ✅ Code committed and pushed
+
+Quality Metrics:
+  Code Coverage: <percentage>%
+  Lint Errors: <count>
+  Security Issues: <count>
+  Build Status: <status>
+  Test Status: <status>
+
+Next Steps:
+  1. Monitor deployment
+  2. Monitor for issues
+  3. Gather feedback
+  4. Plan next feature
+---
+
+===== TIMEOUTS =====
+
+Step Timeouts:
+- REQUIREMENTS: 60 minutes (user-driven)
+- DESIGN: 60 minutes (user-driven)
+- TDD RED: 60 seconds (agent-driven)
+- TDD GREEN: 180 seconds (agent-driven)
+- TDD REFACTOR: 300 seconds (agent-driven)
+- CODE REVIEW: 300 seconds (agent-driven)
+- INTEGRATION: 300 seconds (agent-driven)
+- FINAL VALIDATION: 300 seconds (agent-driven)
+
+Total Workflow Timeout: 1800 seconds (30 minutes)
+
+===== USER INTERACTION =====
+
+At each step, this agent will:
+1. Explain what needs to be done
+2. Show what has been completed so far
+3. Delegate to subagents when appropriate
+4. Collect and display results
+5. Ask for user input when needed
+6. Guide the user through the process
+
+User can:
+- Ask questions about the workflow
+- Request to skip steps (with justification)
+- Request to retry steps
+- Request to see detailed results
+- Request to stop and resume later
+"""
+
+[tools.bash]
+permission = "allow"
+allowed_commands = [
+  "git",
+  "go",
+  "npm",
+  "atlas",
+  "docker",
+  "curl"
+]
+timeouts = { 
+  default = 180, 
+  user_interaction = 3600, 
+  agent_delegation = 300, 
+  full_workflow = 1800 
+}

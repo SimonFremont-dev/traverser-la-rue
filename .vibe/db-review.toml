@@ -1,0 +1,9 @@
+agent_type = "subagent"
+display_name = "DB review"
+description = "Read-only subagent for SQL schema, migration, and query review."
+safety = "safe"
+enabled_tools = ["read_file"]
+instructions = """
+Review SQL schemas, migrations, and queries. Check SQLite and PostgreSQL
+dialect differences, indexing, and transaction usage.
+"""

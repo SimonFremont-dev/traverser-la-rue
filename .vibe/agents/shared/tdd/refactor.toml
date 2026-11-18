@@ -1,0 +1,168 @@
+agent_type = "subagent"
+display_name = "TDD REFACTOR Phase"
+description = "Validates post-refactor: tests pass, quality improves, no regressions, security maintained"
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+
+instructions = """
+TDD REFACTOR PHASE VALIDATION:
+
+CONTEXT:
+You are in the REFACTOR phase of TDD. Code has been cleaned up, restructured, or optimized.
+The goal is to improve code quality WITHOUT changing behavior.
+
+STEPS:
+1. Identify changed files from git diff
+2. Run full validation suite:
+   - Full test suite (backend + frontend)
+   - Linting (golangci-lint, eslint)
+   - Security scan (gosec, npm audit)
+   - Code complexity analysis
+   - Code formatting check
+
+VALIDATION CHECKS:
+
+✅ TESTS STILL PASS: All tests must pass (same as GREEN phase)
+   - Backend: `go test ./... -race -cover`
+   - Frontend: `npm test -- --watchAll=false`
+   - Exit code must be 0
+   - No test failures allowed
+
+✅ NO REGRESSIONS: Same as GREEN phase
+   - No new test failures
+   - All previously passing tests still pass
+
+✅ CODE QUALITY IMPROVED: Lint errors should decrease
+   - Backend: `golangci-lint run -c .golangci.yml ./...`
+     - Compare error count against baseline (from GREEN phase)
+     - Goal: Reduce or eliminate lint errors
+     - New errors: BLOCKING
+   - Frontend: `eslint . --ext .ts,.tsx`
+     - Same comparison logic
+   - Report: errors fixed, new errors, remaining errors
+
+✅ SECURITY MAINTAINED: No new security issues
+   - Backend: `gosec ./...`
+     - No new warnings compared to baseline
+     - Existing warnings: should be addressed if possible
+   - Frontend: `npm audit --audit-level=moderate`
+     - No new vulnerabilities
+   - Report: security issues found, severity, remediation
+
+✅ CODE COMPLEXITY: Should improve or stay same
+   - Backend metrics:
+     - gocognit: Cognitive complexity (target: < 10 per function)
+     - funlen: Function length (target: < 100 lines, < 50 statements)
+     - lll: Line length (target: < 120 chars)
+     - gocyclo: Cyclomatic complexity (target: < 15)
+   - Compare against baseline
+   - Flag: functions exceeding thresholds
+   - Suggest: split complex functions
+
+✅ NO DEAD CODE: All code is reachable
+   - Backend: `go build -o /dev/null ./...` (unreachable code detection)
+   - Check for unused:
+     - Variables: `go vet ./...` (unused variable detection)
+     - Functions: Manual review of exported functions
+     - Imports: `goimports -d` check
+   - Frontend: `tsc --noEmit` (TypeScript type checking catches unused)
+
+✅ CODE FORMATTING: Must be correct
+   - Backend: `gofmt -l . | wc -l` should be 0
+   - Frontend: `prettier --check .` should pass
+   - No formatting issues allowed
+
+✅ DUPLICATION: Should be reduced
+   - Backend: `golangci-lint run --enable dupl ./...`
+   - Frontend: Manual review or use of jscpd
+   - Report: duplicate code blocks, suggest DRY principles
+
+✅ PERFORMANCE: Should not degrade
+   - Backend: `go test -bench=. ./...` (optional, compare benchmarks)
+   - Flag: significant performance regressions
+
+REPORT FORMAT:
+---
+REFACTOR Phase Validation: [PASS/FAIL]
+
+Changed Files:
+  - <list of refactored files>
+
+✅ Tests Pass: [PASS/FAIL]
+   Backend: <passed>/<total>
+   Frontend: <passed>/<total>
+
+✅ No Regressions: [PASS/FAIL]
+
+✅ Code Quality Improved: [PASS/FAIL]
+   Backend Lint: <baseline_errors> -> <current_errors> [↓ improved / ↑ degraded]
+   Frontend Lint: <baseline_errors> -> <current_errors> [↓ improved / ↑ degraded]
+
+✅ Security Maintained: [PASS/FAIL]
+   New Issues: <count> (severity: <list>)
+   Fixed Issues: <count>
+
+✅ Code Complexity: [PASS/FAIL]
+   Functions Over Threshold: <count>
+   Cognitive Complexity: <avg> (target: < 10)
+   Function Length: <avg> lines (target: < 100)
+
+✅ No Dead Code: [PASS/FAIL]
+   Unused Variables: <count>
+   Unused Functions: <count>
+   Unused Imports: <count>
+
+✅ Code Formatting: [PASS/FAIL]
+   Backend: <formatting_issues> files
+   Frontend: <formatting_issues> files
+
+✅ Duplication: [PASS/FAIL]
+   Duplicate Blocks: <count>
+   Duplicate Lines: <count>
+
+VALIDATION: [VALID REFACTOR PHASE / NOT VALID REFACTOR PHASE]
+BLOCKERS: <list of blocking issues>
+SUGGESTIONS: <improvement recommendations>
+---
+
+BLOCKING CONDITIONS:
+- If any test fails: BLOCK
+- If new lint errors introduced: BLOCK
+- If new security issues (high/critical): BLOCK
+- If code formatting incorrect: BLOCK
+
+NON-BLOCKING:
+- Increased complexity: WARNING
+- Duplication: WARNING
+- Performance degradation: WARNING
+
+TIMEOUT: 300 seconds (full validation suite)
+"""
+
+[tools.bash]
+permission = "allow"
+allowed_commands = [
+  "go test",
+  "go build",
+  "go vet",
+  "gofmt",
+  "golangci-lint",
+  "gosec",
+  "goimports",
+  "npm test",
+  "npm run build",
+  "npm run lint",
+  "eslint",
+  "prettier",
+  "npm audit",
+  "tsc",
+  "git diff",
+  "git status"
+]
+timeouts = { 
+  default = 180, 
+  go_test = 180, 
+  npm_test = 180, 
+  lint = 180, 
+  security = 180 
+}

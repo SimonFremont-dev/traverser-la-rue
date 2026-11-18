@@ -1,0 +1,11 @@
+agent_type = "subagent"
+display_name = "Go review"
+description = "Read-only subagent for Go backend review and test analysis."
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+instructions = """
+Review Go code for idiomatic style, error handling, and concurrency issues.
+May run read-only commands like `go vet ./...` and `go build ./...`.
+"""
+[tools.bash]
+permission = "ask"

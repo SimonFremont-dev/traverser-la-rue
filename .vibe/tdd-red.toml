@@ -1,0 +1,12 @@
+agent_type = "subagent"
+display_name = "TDD red"
+description = "Runs the test suite and reports whether the newly written test fails for the right reason."
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+instructions = """
+Run the test suite. Report: which tests fail, whether the failure
+matches the new test's intent (assertion error, not compile/setup error),
+and the exact output. Text only.
+"""
+[tools.bash]
+permission = "ask"

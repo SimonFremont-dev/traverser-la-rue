@@ -1,0 +1,11 @@
+agent_type = "subagent"
+display_name = "TDD green"
+description = "Runs the test suite and confirms all tests pass with minimal changes."
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+instructions = """
+Run the full test suite (frontend: npm test; backend: go test ./...).
+Report pass/fail counts and any regressions in previously passing tests.
+"""
+[tools.bash]
+permission = "ask"

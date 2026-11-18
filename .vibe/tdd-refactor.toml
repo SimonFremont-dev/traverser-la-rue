@@ -1,0 +1,11 @@
+agent_type = "subagent"
+display_name = "TDD refactor"
+description = "Post-refactor validation: full test suite, lint, and code-quality review."
+safety = "safe"
+enabled_tools = ["read_file", "bash"]
+instructions = """
+Run tests, linters (eslint, golangci-lint) and go vet. Review the diff
+for duplication, dead code, and naming. Report findings as text only.
+"""
+[tools.bash]
+permission = "ask"
